@@ -78,3 +78,22 @@ def parallel_dtw_sweep_min(query_list, search_list, n_step=3, n_cpus=1):
         costs[i*n_search:(i + 1)*n_search] for i in
         range(int(np.floor(len(costs)/n_search)))
         ]
+
+def parallel_dtw_sweep(query_list, search_list, n_step=3, n_cpus=1):
+    """
+    Calculate the all the DTW costs for a list of queries and search sequences.
+
+    A list of lists of lists is returned. The order matches that of `query_list`, with
+    each entry giving a list of costs of that query to each of the items in
+    `search_list`.
+    """
+    from joblib import Parallel, delayed
+    costs = Parallel(n_jobs=n_cpus, max_nbytes=None)(delayed
+        (dtw_sweep)(query_seq, search_seq) for query_seq in query_list for
+        search_seq in search_list
+        )
+    n_search = len(search_list)
+    return [
+        costs[i*n_search:(i + 1)*n_search] for i in
+        range(int(np.floor(len(costs)/n_search)))
+        ]
